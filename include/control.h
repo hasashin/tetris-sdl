@@ -4,6 +4,9 @@
 #include <random>
 #include <fonts.h>
 
+class eventable;
+
+//TODO: make virtual method callEvent or similar.
 
 class menu;
 
