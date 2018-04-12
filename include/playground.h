@@ -18,26 +18,32 @@
 
 
 
-class playground {
+class playground : public object {
 
-    gameDraw* drawer;
+    gameDraw *drawer;
 
-    gameLogic* logic = new gameLogic(drawer);
+    gameLogic *logic = new gameLogic(drawer);
+
+    void keyboardInputControl(SDL_Scancode scancode) override {
+        switch (scancode) {
+            case SDL_SCANCODE_ESCAPE:
+                global::pause = true;
+                break;
+            default:
+                break;
+        }
+    }
 
 public:
-    explicit playground(SDL_Renderer *&ren):drawer(new gameDraw(ren)){
+    explicit playground(SDL_Renderer *&ren) : drawer(new gameDraw(ren)) {
         int h = int(global::SCREEN_H * 0.9);
         int w = h / 2;
         int x = global::SCREEN_W / 4 - w / 2;
         int y = global::SCREEN_H / 2 - h / 2;
-        drawer->init(x,y,w,h);
+        drawer->init(x, y, w, h);
     }
 
     void operator()() {
-        if(global::state == global::PS_PAUSE){
-            drawer->drawPause();
-            logic->pause();
-        }
         (*drawer)();
 //        (*logic)();
     }

@@ -3,7 +3,7 @@
 
 #include <vector>
 
-enum objectTypes{
+enum objectTypes {
     OTYPE_T,
     OTYPE_L,
     OTYPE_J,
@@ -18,22 +18,22 @@ class gameLogic {
     objectTypes thisType;
     objectTypes nextType;
 
-    gameDraw* draw;
+    gameDraw *draw;
 
     bool running = false;
 
-    void generateObject(){
+    void generateObject() {
         thisType = nextType;
-        nextType = (objectTypes)global::random(0,7);
+        nextType = (objectTypes) global::random(0, 7);
     }
 
-    void update(){
+    void update() {
 
     }
 
     bool checkConditions() {
         bool toret = true;
-        for (auto& elem:draw->firstRow()) {
+        for (auto &elem:draw->firstRow()) {
             if (elem == 1) toret = false;
         }
         return toret || running;
@@ -43,42 +43,24 @@ class gameLogic {
 
 public:
 
-    gameLogic(gameDraw*& gd):draw(gd){
-        nextType = (objectTypes)global::random(0,7);
+    gameLogic(gameDraw *&gd) : draw(gd) {
+        nextType = (objectTypes) global::random(0, 7);
     }
 
-    void operator()(){
-        if(checkConditions()) {
-            if(!running){
+    void operator()() {
+        if (checkConditions()) {
+            if (!running) {
                 running = true;
                 generateObject();
                 update();
-            }
-            else{
+            } else {
                 update();
             }
-        }
-        else{
+        } else {
             global::state = global::PS_GAMEOVER;
         }
     }
 
-    void pause(){
-        event ev;
-        SDL_Scancode sc;
-        while(global::state == global::PS_PAUSE){
-            if(ev.executeEvents(sc) == 2){
-                if(sc == SDL_SCANCODE_ESCAPE){
-                    break;
-                }
-            }
-        }
-        global::state = global::PS_INGAME;
-    }
-
-    int nextElement(){
-        return (int)nextType;
-    }
 
 };
 

@@ -4,9 +4,13 @@
 #include <random>
 #include <fonts.h>
 
-class eventable;
+class object {
+protected:
+    object() {}
 
-//TODO: make virtual method callEvent or similar.
+public:
+    virtual void keyboardInputControl(SDL_Scancode scancode) =0;
+};
 
 class menu;
 
@@ -15,11 +19,11 @@ class playground;
 class game;
 
 namespace global {
+
     enum programState {
         PS_MENU,
         PS_INGAME,
-        PS_GAMEOVER,
-        PS_PAUSE
+        PS_GAMEOVER
     };
     programState state = PS_MENU;
     int SCREEN_W = 800, SCREEN_H = 600;
@@ -27,6 +31,7 @@ namespace global {
     bool enableMusic;
     bool enableSounds;
     bool fullscreen;
+    bool pause;
 
     fontsContainer fonts;
     std::string programDir(SDL_GetBasePath());
@@ -65,56 +70,72 @@ namespace global {
         SDL_RenderCopy(rend, texture, nullptr, &destRect);
     }
 
-    void writeSettings(){
-        SDL_RWops* rw = SDL_RWFromFile((global::programDir + "config/docfig.dat").c_str(),"wb");
-        SDL_RWwrite(rw,&enableSounds,sizeof(enableSounds),1);
-        SDL_RWwrite(rw,&enableMusic,sizeof(enableMusic),1);
-        SDL_RWwrite(rw,&fullscreen,sizeof(enableMusic),1);
+    void writeSettings() {
+        SDL_RWops *rw = SDL_RWFromFile((global::programDir + "config/docfig.dat").c_str(), "wb");
+        SDL_RWwrite(rw, &enableSounds, sizeof(enableSounds), 1);
+        SDL_RWwrite(rw, &enableMusic, sizeof(enableMusic), 1);
+        SDL_RWwrite(rw, &fullscreen, sizeof(enableMusic), 1);
         SDL_RWclose(rw);
     }
-    void readSettings(){
-        SDL_RWops* rw = SDL_RWFromFile((global::programDir + "config/docfig.dat").c_str(),"rb");
-        SDL_RWread(rw,&enableSounds,sizeof(enableSounds),1);
-        SDL_RWread(rw,&enableMusic,sizeof(enableMusic),1);
-        SDL_RWread(rw,&fullscreen,sizeof(enableMusic),1);
+
+    void readSettings() {
+        SDL_RWops *rw = SDL_RWFromFile((global::programDir + "config/docfig.dat").c_str(), "rb");
+        SDL_RWread(rw, &enableSounds, sizeof(enableSounds), 1);
+        SDL_RWread(rw, &enableMusic, sizeof(enableMusic), 1);
+        SDL_RWread(rw, &fullscreen, sizeof(enableMusic), 1);
         SDL_RWclose(rw);
     }
+
 
 #ifdef _WIN32
     int random(int min = 0,int max = 100){
         return rand()%(max+1) + min;
     }
 #else
+
     int random(int min = 0, int max = 100) {
         std::random_device rd;
         static std::default_random_engine e(rd());
         std::uniform_int_distribution<int> d(min, max);
         return d(e);
     }
+
 #endif
 
 }
 
-class event{
-    menu* mptr;
-public:
-    int executeEvents(SDL_Scancode& scode){
-        SDL_Event e;
-        if (SDL_PollEvent(&e)) {
-            switch (e.type) {
-                case SDL_QUIT:
-                    global::close = true;
-                    return 1;
-                case SDL_KEYDOWN:
-                    scode=e.key.keysym.scancode;
-                    return 2;
-                default:
-                    return 0;
-            }
-        }
-        return -1;
+class event {
+protected:
+    SDL_Event ev;
+    object *obptr = nullptr;
+
+    bool getEvent() {
+        return (bool) SDL_PollEvent(&ev);
     }
 
+public:
+    void callEvent() {
+        SDL_Scancode scode;
+        if (getEvent()) {
+            switch (ev.type) {
+                case SDL_QUIT:
+                    global::close = true;
+                    break;
+                case SDL_KEYDOWN:
+                    scode = ev.key.keysym.scancode;
+                    if (!obptr) throw std::runtime_error("Obiekt nie jest wskazany");
+                    obptr->keyboardInputControl(scode);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    void setObptr(object *obptr) {
+        event::obptr = obptr;
+    }
 };
+
 
 #endif //TETRIS_SDL_CONTROL_H

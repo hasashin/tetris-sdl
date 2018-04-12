@@ -1,10 +1,15 @@
 #ifndef TETRIS_SDL_GAME_H
 #define TETRIS_SDL_GAME_H
 
+#include <control.h>
 #include <menu.h>
 #include <playground.h>
+#include <tetrisFont.h>
+#include <pause.h>
 
 class game {
+
+    friend class gameEvent;
 
     SDL_Window *window;
 
@@ -13,66 +18,35 @@ class game {
     void undefinedErrorLoop() {
         SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
         while (!global::close) {
-            executeEvents();
+            event_.callEvent();
             SDL_RenderClear(renderer);
-            global::drawTexture(100, 100,
-                                global::renderText(renderer, "Niepoprawny stan programu. Uruchom ponownie grę",
-                                                   {255, 0, 0, 255}, "default"), renderer);
+            global::drawTexture(
+                    100,
+                    100,
+                    global::renderText(
+                            renderer,
+                            "Niepoprawny stan programu. Uruchom ponownie grę",
+                            {255, 0, 0, 255},
+                            "default"
+                    ),
+                    renderer
+            );
             SDL_RenderPresent(renderer);
         }
     }
 
-    void keyboardInputControl(SDL_Scancode keycode) {
-        if (global::state == global::PS_MENU && global::menuptr) {
-            switch (keycode) {
-                case SDL_SCANCODE_UP:
-                    global::menuptr->toggle(-1);
-                    break;
-                case SDL_SCANCODE_DOWN:
-                    global::menuptr->toggle(1);
-                    break;
-                case SDL_SCANCODE_RETURN:
-                    global::menuptr->doElementAction(window);
-                    break;
-                case SDL_SCANCODE_ESCAPE:
-                    global::menuptr->toggle(INT32_MIN);
-                    global::menuptr->doElementAction(window);
-                default:
-                    break;
-            }
-            return;
-        }
-        if(global::state == global::PS_INGAME){
-            switch(keycode){
-                case SDL_SCANCODE_ESCAPE:
-                global::state = global::PS_PAUSE;
-                    break;
-                default:
-                    break;
-            }
-            return;
-        }
-        if(global::state == global::PS_PAUSE){
-            switch(keycode){
-                case SDL_SCANCODE_ESCAPE:
-                    global::state = global::PS_INGAME;
-                    break;
-                default:
-                    break;
-            }
-            return;
-        }
-    }
-
-
-
     void gameLoop() {
-
-        SDL_Renderer* renderer= SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+        SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
         playground plgd(renderer);
         global::playgroundptr = &plgd;
-        while(global::state == global::PS_INGAME && !global::close){
-            executeEvents();
+        event_.setObptr(&plgd);
+        while (global::state == global::PS_INGAME && !global::close) {
+            if (global::pause) {
+                pauseLoop(renderer);
+            } else {
+                event_.setObptr(&plgd);
+            }
+            event_.callEvent();
             getWindowSize();
             plgd();
             SDL_Delay(17);
@@ -81,44 +55,67 @@ class game {
         SDL_DestroyRenderer(renderer);
     }
 
+    void genrateTitle(SDL_Renderer* renderer,SDL_Texture* texture){
+        SDL_SetRenderTarget(renderer,texture);
+        SDL_RenderClear(renderer);
+        int w,h,x=0;
+        SDL_QueryTexture(texture,nullptr,nullptr,&w,&h);
+        w = w/23;
+        h = h/5;
+        global::drawTetrisLetter(x,0,3*w,5*h,TETRIS_LETTER_T,renderer);
+        x+=4*w;
+        global::drawTetrisLetter(x,0,3*w,5*h,TETRIS_LETTER_E,renderer);
+        x+=4*w;
+        global::drawTetrisLetter(x,0,3*w,5*h,TETRIS_LETTER_T,renderer);
+        x+=4*w;
+        global::drawTetrisLetter(x,0,3*w,5*h,TETRIS_LETTER_R,renderer);
+        x+=4*w;
+        global::drawTetrisLetter(x,0,3*w,5*h,TETRIS_LETTER_I,renderer);
+        x+=4*w;
+        global::drawTetrisLetter(x,0,3*w,5*h,TETRIS_LETTER_S,renderer);
+        SDL_SetRenderTarget(renderer,nullptr);
+    }
+
     void menuLoop() {
         SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-        menu meni(renderer);
+        SDL_Texture *title=SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA8888,SDL_TEXTUREACCESS_TARGET,2300,500);
+        genrateTitle(renderer,title);
+        menu meni(renderer, window);
+        event_.setObptr(&meni);
         global::menuptr = &meni;
-        while (global::state == global::PS_MENU && !global::close) {
+        while (!global::close && global::state == global::PS_MENU) {
             getWindowSize();
-            executeEvents();
+            event_.callEvent();
             SDL_RenderClear(renderer);
             {
                 int w, h, ratio;
-                SDL_Texture *title = global::renderText(renderer, "TETRIS", {40, 234, 132, 255}, "title");
-                SDL_QueryTexture(title, nullptr, nullptr, &w, &h);
-                ratio = w / h;
+                SDL_QueryTexture(title, nullptr, nullptr,&w,&h);
+                ratio = w/h;
                 w = int(0.6 * global::SCREEN_W);
                 h = w / ratio;
                 global::drawScaledTexture(global::SCREEN_W / 2 - w / 2, (global::SCREEN_H / 2 - h) / 2, w, h,
                                           title, renderer);
             }
-
             meni();
             SDL_RenderPresent(renderer);
-            SDL_Delay(32);
+            SDL_Delay(17);
         }
         global::menuptr = nullptr;
         SDL_DestroyRenderer(renderer);
     }
 
-    void executeEvents(){
-        SDL_Scancode scancode;
-        switch(event_.executeEvents(scancode)){
-            case 2:
-                keyboardInputControl(scancode);
-                break;
-            case 1:
-            default:
-                break;
+    void pauseLoop(SDL_Renderer *renderer) {
+        pause pause_(renderer);
+        event_.setObptr(&pause_);
+        while (global::pause && !global::close) {
+            event_.callEvent();
+            getWindowSize();
+            pause_();
+            SDL_Delay(17);
         }
+
     }
+
 
 public:
     game() {
@@ -138,6 +135,7 @@ public:
     }
 
     void operator()() {
+
         switch (global::state) {
             case global::PS_MENU:
                 menuLoop();
@@ -155,6 +153,9 @@ public:
         SDL_GetWindowSize(window, &global::SCREEN_W, &global::SCREEN_H);
     }
 
+    SDL_Window *getWindow() {
+        return window;
+    }
 };
 
 #endif //TETRIS_SDL_GAME_H
