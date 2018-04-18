@@ -3,38 +3,40 @@
 
 #include <vector>
 
-enum objectTypes {
-    OTYPE_T,
-    OTYPE_L,
-    OTYPE_J,
-    OTYPE_SQ,
-    OTYPE_I,
-    OTYPE_S,
-    OTYPE_Z
-};
-
 class gameLogic {
 
     objectTypes thisType;
     objectTypes nextType;
 
+    int drawingColor;
+
     gameDraw *draw;
 
     bool running = false;
-
+    int x=0,y=5;
     void generateObject() {
         thisType = nextType;
-        nextType = (objectTypes) global::random(0, 7);
+        //nextType = (objectTypes) global::random(0, 7);
+        drawingColor = global::random(1,7);
+        x=0;y=5;
+        draw->spawnObject(x,y,thisType,drawingColor);
+        draw->drawGrid();
     }
 
     void update() {
+        SDL_Delay(800);
+        if(draw->moveDown(x,y,thisType,ROTATION_NONE)){
+            x+=1;
+            draw->spawnObject(x,y,thisType,drawingColor);
+        } else running = false;
+        draw->drawGrid();
 
     }
 
     bool checkConditions() {
         bool toret = true;
         for (auto &elem:draw->firstRow()) {
-            if (elem == 1) toret = false;
+            if (elem > 0) toret = false;
         }
         return toret || running;
     }
@@ -44,7 +46,8 @@ class gameLogic {
 public:
 
     gameLogic(gameDraw *&gd) : draw(gd) {
-        nextType = (objectTypes) global::random(0, 7);
+        //nextType = (objectTypes) global::random(0, 7);
+        nextType = OTYPE_L;
     }
 
     void operator()() {

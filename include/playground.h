@@ -45,7 +45,7 @@ public:
 
     void operator()() {
         (*drawer)();
-//        (*logic)();
+        (*logic)();
     }
 };
 

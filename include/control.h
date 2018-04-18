@@ -123,8 +123,8 @@ public:
                     break;
                 case SDL_KEYDOWN:
                     scode = ev.key.keysym.scancode;
-                    if (!obptr) throw std::runtime_error("Obiekt nie jest wskazany");
-                    obptr->keyboardInputControl(scode);
+                    if (obptr) obptr->keyboardInputControl(scode);
+                    else std::cout << "Obiekt nie wskazany. Brak obsługi klawiatury\n";
                     break;
                 default:
                     break;

@@ -17,6 +17,7 @@ class game {
 
     void undefinedErrorLoop() {
         SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
+        event_.setObptr(nullptr);
         while (!global::close) {
             event_.callEvent();
             SDL_RenderClear(renderer);

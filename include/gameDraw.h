@@ -1,6 +1,25 @@
 #ifndef TETRIS_SDL_GAMEDRAW_H
 #define TETRIS_SDL_GAMEDRAW_H
 
+#include <shape.h>
+
+enum objectTypes {
+    OTYPE_T,
+    OTYPE_L,
+    OTYPE_J,
+    OTYPE_SQ,
+    OTYPE_I,
+    OTYPE_S,
+    OTYPE_Z
+};
+
+enum objectRotation{
+    ROTATION_NONE,
+    ROTATION_LEFT,
+    ROTATION_RIGHT,
+    ROTATION_UPDOWN
+};
+
 class gameDraw {
     SDL_Renderer *renderer = nullptr;
 
@@ -8,24 +27,24 @@ class gameDraw {
 
     std::vector<std::vector<int>> matrix =
             {
-                    {0, 0, 0, 1, 1, 1, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 1, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 1, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 1, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 2, 2, 2, 0, 0, 0, 0},
-                    {0, 0, 0, 2, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 2, 2, 2, 0, 0, 0, 0},
-                    {0, 0, 0, 2, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 2, 2, 2, 0, 0, 0, 0},
-                    {0, 0, 0, 3, 3, 3, 0, 0, 0, 0},
-                    {0, 0, 0, 3, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 3, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 3, 0, 0, 0, 0},
-                    {0, 0, 0, 3, 3, 3, 0, 0, 0, 0},
-                    {0, 0, 0, 4, 4, 4, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 4, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 4, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 4, 0, 0, 0, 0, 0},
+                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
             };
@@ -54,6 +73,88 @@ class gameDraw {
         bottomright.y = int(main.y + main.h * 1.2);
         bottomright.w = main.w / 20;
         bottomright.h = main.h / 10;
+    }
+
+    bool moveDown(int x, int y, objectTypes otype,objectRotation rotation){
+        switch(otype) {
+            case OTYPE_I:
+                switch (rotation) {
+                    case ROTATION_NONE:
+                    case ROTATION_UPDOWN:
+                        return x + 4 < matrix.size() && matrix[x + 4][y] == 0;
+                    case ROTATION_LEFT:
+                    case ROTATION_RIGHT:
+                        return x + 1 < matrix.size()
+                               && matrix[x + 1][y] == 0
+                               && matrix[x + 1][y + 1] == 0
+                               && matrix[x + 1][y + 2] == 0
+                               && matrix[x + 1][y + 3] == 0;
+                    default:
+                        return false;
+                }
+
+            case OTYPE_L:
+                switch(rotation){
+                    case ROTATION_NONE:
+                        return x+3 < matrix.size() && matrix[x+3][y] == 0 && matrix[x+3][y+1] == 0;
+                    case ROTATION_LEFT:
+                        return x+1 < matrix.size()
+                               && matrix[x+1][y] == 0
+                               && matrix[x+1][y+1] == 0
+                               && matrix[x+1][y+2] == 0;
+                    case ROTATION_RIGHT:
+                        return x+2 < matrix.size() && matrix[x+2][y] == 0;
+                    case ROTATION_UPDOWN:
+                        return x+3 < matrix.size() && matrix[x+3][y+1] == 0;
+                    default:
+                        return false;
+                }
+            default:
+                return false;
+        }
+    }
+
+    void eraseObject(int x,int y,std::vector<std::vector<int>>& objmx){
+        for(int i=0;i<objmx.size();i++){
+            for(int j=0;j<objmx[0].size();j++){
+                matrix[x+i][y+j] = 0;
+            }
+        }
+    }
+
+    void spawnObject(int x,int y,objectTypes otype,int color){
+        std::vector<std::vector<int>> shapemx;
+        switch(otype){
+            case OTYPE_I:
+                shapemx = OTYPE_I_SHAPE;
+                break;
+            case OTYPE_J:
+                shapemx = OTYPE_J_SHAPE;
+                break;
+            case OTYPE_L:
+                shapemx = OTYPE_L_SHAPE;
+                break;
+            case OTYPE_S:
+                shapemx = OTYPE_S_SHAPE;
+                break;
+            case OTYPE_SQ:
+                shapemx = OTYPE_SQ_SHAPE;
+                break;
+            case OTYPE_Z:
+                shapemx = OTYPE_Z_SHAPE;
+                break;
+            case OTYPE_T:
+                shapemx = OTYPE_T_SHAPE;
+                break;
+            default:
+                return;
+        }
+        if(x!=0) eraseObject(x-1,y,shapemx);
+        for(int i=0;i<shapemx.size();i++){
+            for (int j=0;j<shapemx[0].size();j++){
+                if(shapemx[i][j]>0) matrix[x+i][y+j] = color;
+            }
+        }
     }
 
     void drawElement(int x, int y) {
