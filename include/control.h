@@ -1,6 +1,7 @@
 #ifndef TETRIS_SDL_CONTROL_H
 #define TETRIS_SDL_CONTROL_H
 
+#include <ctime>
 #include <random>
 #include <fonts.h>
 
@@ -87,20 +88,12 @@ namespace global {
     }
 
 
-#ifdef _WIN32
-    int random(int min = 0,int max = 100){
-        return rand()%(max+1) + min;
-    }
-#else
-
     int random(int min = 0, int max = 100) {
-        std::random_device rd;
-        static std::default_random_engine e(rd());
+        static std::mt19937_64 e(time(0));
         std::uniform_int_distribution<int> d(min, max);
         return d(e);
     }
 
-#endif
 
 }
 

@@ -1,9 +1,6 @@
 #include <SDL2/SDL.h>
 #include <game.h>
 
-#ifdef _WIN32
-#include <ctime>
-#endif
 
 void init_all() {
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
@@ -23,9 +20,6 @@ void addFonts() {
 }
 
 int main(int argc, char *args[]) {
-#ifdef _WIN32
-    srand(time(0));
-#endif
     init_all();
     addFonts();
 
