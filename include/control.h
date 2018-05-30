@@ -7,8 +7,10 @@
 
 class object {
 protected:
-    object() {}
-
+    object() =delete;
+    explicit object(SDL_Renderer*& renderer_):renderer(renderer_){}
+    SDL_Renderer* renderer;
+    friend class event;
 public:
     virtual void keyboardInputControl(SDL_Scancode scancode) =0;
 };
@@ -118,6 +120,9 @@ public:
                     scode = ev.key.keysym.scancode;
                     if (obptr) obptr->keyboardInputControl(scode);
                     else std::cout << "Obiekt nie wskazany. Brak obsługi klawiatury\n";
+                    break;
+                case SDL_WINDOWEVENT_RESIZED:
+                    if(obptr->renderer) SDL_RenderSetScale(obptr->renderer,global::SCREEN_W/1680,global::SCREEN_H/1050);
                     break;
                 default:
                     break;

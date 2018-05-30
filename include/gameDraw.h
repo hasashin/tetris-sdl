@@ -1,53 +1,34 @@
 #ifndef TETRIS_SDL_GAMEDRAW_H
 #define TETRIS_SDL_GAMEDRAW_H
 
+#include <exception>
+
+/* Object colors definitions
+ * 0 - black/no object drawing
+ * 1 - blue
+ * 2 - green
+ * 3 - cyan
+ * 4 - red
+ * 5 - magenta
+ * 6 - yellow
+ * 7 - white
+ * 8 - black/object present
+ */
+
+#define BLOCK_SIZE 47
+
 #include <shape.h>
-
-enum objectTypes {
-    OTYPE_T,
-    OTYPE_L,
-    OTYPE_J,
-    OTYPE_SQ,
-    OTYPE_I,
-    OTYPE_S,
-    OTYPE_Z
-};
-
-enum objectRotation{
-    ROTATION_NONE,
-    ROTATION_LEFT,
-    ROTATION_RIGHT,
-    ROTATION_UPDOWN
-};
 
 class gameDraw {
     SDL_Renderer *renderer = nullptr;
 
     SDL_Rect main;
 
-    std::vector<std::vector<int>> matrix =
-            {
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-            };
+    SDL_Window *window;
+
+    std::vector<SDL_Rect> blocks;
+
+    const int x, y;
 
     void drawFrame() {
         SDL_Surface *surf = SDL_LoadBMP((global::programDir + "bitmap/mainframe.bmp").c_str());
@@ -75,142 +56,55 @@ class gameDraw {
         bottomright.h = main.h / 10;
     }
 
-    bool moveDown(int x, int y, objectTypes otype,objectRotation rotation){
-        switch(otype) {
-            case OTYPE_I:
-                switch (rotation) {
-                    case ROTATION_NONE:
-                    case ROTATION_UPDOWN:
-                        return x + 4 < matrix.size() && matrix[x + 4][y] == 0;
-                    case ROTATION_LEFT:
-                    case ROTATION_RIGHT:
-                        return x + 1 < matrix.size()
-                               && matrix[x + 1][y] == 0
-                               && matrix[x + 1][y + 1] == 0
-                               && matrix[x + 1][y + 2] == 0
-                               && matrix[x + 1][y + 3] == 0;
-                    default:
-                        return false;
-                }
-
-            case OTYPE_L:
-                switch(rotation){
-                    case ROTATION_NONE:
-                        return x+3 < matrix.size() && matrix[x+3][y] == 0 && matrix[x+3][y+1] == 0;
-                    case ROTATION_LEFT:
-                        return x+1 < matrix.size()
-                               && matrix[x+1][y] == 0
-                               && matrix[x+1][y+1] == 0
-                               && matrix[x+1][y+2] == 0;
-                    case ROTATION_RIGHT:
-                        return x+2 < matrix.size() && matrix[x+2][y] == 0;
-                    case ROTATION_UPDOWN:
-                        return x+3 < matrix.size() && matrix[x+3][y+1] == 0;
-                    default:
-                        return false;
-                }
-            default:
-                return false;
-        }
-    }
-
-    void eraseObject(int x,int y,std::vector<std::vector<int>>& objmx){
-        for(int i=0;i<objmx.size();i++){
-            for(int j=0;j<objmx[0].size();j++){
-                matrix[x+i][y+j] = 0;
-            }
-        }
-    }
-
-    void spawnObject(int x,int y,objectTypes otype,int color){
-        std::vector<std::vector<int>> shapemx;
-        switch(otype){
-            case OTYPE_I:
-                shapemx = OTYPE_I_SHAPE;
-                break;
-            case OTYPE_J:
-                shapemx = OTYPE_J_SHAPE;
-                break;
-            case OTYPE_L:
-                shapemx = OTYPE_L_SHAPE;
-                break;
-            case OTYPE_S:
-                shapemx = OTYPE_S_SHAPE;
-                break;
-            case OTYPE_SQ:
-                shapemx = OTYPE_SQ_SHAPE;
-                break;
-            case OTYPE_Z:
-                shapemx = OTYPE_Z_SHAPE;
-                break;
-            case OTYPE_T:
-                shapemx = OTYPE_T_SHAPE;
-                break;
-            default:
-                return;
-        }
-        if(x!=0) eraseObject(x-1,y,shapemx);
-        for(int i=0;i<shapemx.size();i++){
-            for (int j=0;j<shapemx[0].size();j++){
-                if(shapemx[i][j]>0) matrix[x+i][y+j] = color;
-            }
-        }
-    }
-
-    void drawElement(int x, int y) {
-        if (matrix[y][x]) {
-            int w = main.w / (int)matrix[0].size(), h = main.h / (int)matrix.size();
-            SDL_Rect elem;
-            elem.x = main.x + x * w;
-            elem.y = main.y + y * h;
-            elem.w = w;
-            elem.h = h;
-
-            SDL_SetRenderDrawColor(renderer, Uint8((matrix[y][x] & 4) * 255), Uint8((matrix[y][x] & 2) * 255),
-                                   Uint8((matrix[y][x] & 1) * 255), 255);
-            SDL_RenderFillRect(renderer, &elem);
-            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-            SDL_Surface *sur = SDL_LoadBMP((global::programDir + "bitmap/frame.bmp").c_str());
-            SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, sur);
-            SDL_RenderCopy(renderer, texture, nullptr, &elem);
-            SDL_FreeSurface(sur);
-        }
+    void init() {
+        main.x = x;
+        main.y = y;
+        main.w = BLOCK_SIZE;
+        main.h = BLOCK_SIZE;
     }
 
     friend class gameLogic;
 
 public:
 
-    void drawGrid() {
+    void drawGrid(tetrisMatrix &matrix) {
+        SDL_Surface *sur = SDL_LoadBMP((global::programDir + "bitmap/blocks.bmp").c_str());
+        SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, sur);
         for (int i = 0; i < matrix.size(); i++) {
             for (int j = 0; j < matrix[0].size(); j++) {
-                drawElement(j, i);
+                main.x = x + BLOCK_SIZE * j;
+                main.y = y + BLOCK_SIZE * i;
+                SDL_RenderCopy(renderer, texture, &blocks[matrix[i][j] - 1], &main);
             }
         }
-    }
-    explicit gameDraw(SDL_Renderer *&renderer_) : renderer(renderer_) {}
-    gameDraw(SDL_Renderer *&renderer_,const std::vector<std::vector<int>>& baseMatrix) : renderer(renderer_) {
-        matrix.clear();
-        matrix = baseMatrix;
-    }
-
-    void init(int x, int y, int w, int h) {
         main.x = x;
         main.y = y;
-        main.w = w;
-        main.h = h;
+        SDL_FreeSurface(sur);
     }
 
+    gameDraw(SDL_Window *window_, int x_, int y_) : x(x_), y(y_), window(window_){
+        renderer = SDL_GetRenderer(window);
+        SDL_Rect temp;
+        temp.x = 0;
+        temp.y = 0;
+        temp.w = BLOCK_SIZE;
+        temp.h = BLOCK_SIZE;
+        for (int i = 1; i < 8; i++) {
+            blocks.push_back(temp);
+            temp.x += BLOCK_SIZE;
+        }
+        init();
+    }
 
-    void operator()() {
+    void run(tetrisMatrix &matrix) {
+        if(window != nullptr && renderer != SDL_GetRenderer(window))
+            throw std::invalid_argument("Renderer jest niepoprawny");
+        SDL_RenderSetScale(renderer, global::SCREEN_W / 1680, global::SCREEN_H / 1050);
         SDL_RenderClear(renderer);
-        drawGrid();
+        drawGrid(matrix);
         SDL_RenderPresent(renderer);
     }
 
-    std::vector<int> firstRow() {
-        return matrix[0];
-    }
 };
 
 #endif //TETRIS_SDL_GAMEDRAW_H

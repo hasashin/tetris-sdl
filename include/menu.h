@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <fstream>
 
 struct menuElement {
     int id;
@@ -33,6 +34,13 @@ class menu : public object {
             case SDL_SCANCODE_ESCAPE:
                 global::menuptr->toggle(INT32_MIN);
                 global::menuptr->doElementAction(window);
+                break;
+            case SDL_SCANCODE_BACKSLASH:
+                {
+                    std::ofstream plik ("res.txt");
+                    plik << global::SCREEN_W<<"x"<<global::SCREEN_H;
+                    plik.close();
+                }
             default:
                 break;
         }
@@ -69,8 +77,6 @@ class menu : public object {
 
     void generateMusicMenu() {}
 
-    SDL_Renderer *rend = nullptr;
-
     std::vector<menuElement>::iterator activeElement;
 
     enum menuType {
@@ -102,7 +108,7 @@ class menu : public object {
 
 public:
 
-    explicit menu(SDL_Renderer *&renderer, SDL_Window *window_) : rend(renderer), window(window_) {
+    explicit menu(SDL_Renderer *&renderer, SDL_Window *window_) : object(renderer), window(window_) {
         generateMenu(MT_MAIN);
     }
 
@@ -165,15 +171,16 @@ public:
                 color.g = 255;
                 color.b = 255;
             }
-            texture = global::renderText(rend, elem.data, color, "menu50");
+            texture = global::renderText(renderer, elem.data, color, "menu50");
             SDL_QueryTexture(texture, nullptr, nullptr, &w, &h);
             ratio = w / h;
             h = int(0.06 * global::SCREEN_H);
             w = h * ratio;
-            global::drawScaledTexture(global::SCREEN_W / 2 - w / 2, global::SCREEN_H / 2 + offset * h, w, h, texture,
-                                      rend);
+            global::drawScaledTexture(global::SCREEN_W / 2 - w / 2, global::SCREEN_H / 2 + offset * h, w, h, texture, renderer);
             offset++;
             SDL_DestroyTexture(texture);
+            float x,y;
+            SDL_RenderGetScale(renderer,&x,&y);
         }
     }
 

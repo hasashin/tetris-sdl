@@ -4,7 +4,6 @@
 #include <control.h>
 
 class pause : public object {
-    SDL_Renderer *renderer;
 
     void drawPause() {
         SDL_Rect pause;
@@ -34,7 +33,7 @@ class pause : public object {
     }
 
 public:
-    explicit pause(SDL_Renderer *renderer_) : renderer(renderer_) {}
+    explicit pause(SDL_Renderer *renderer_) : object(renderer_) {}
 
     void operator()() {
         drawPause();

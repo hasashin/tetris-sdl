@@ -3,7 +3,7 @@
 
 
 void init_all() {
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER);
     TTF_Init();
     global::close = false;
     global::pause = false;

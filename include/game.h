@@ -38,7 +38,7 @@ class game {
 
     void gameLoop() {
         SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-        playground plgd(renderer);
+        playground plgd(renderer,window);
         global::playgroundptr = &plgd;
         event_.setObptr(&plgd);
         while (global::state == global::PS_INGAME && !global::close) {
@@ -50,7 +50,6 @@ class game {
             event_.callEvent();
             getWindowSize();
             plgd();
-            SDL_Delay(17);
         }
         global::playgroundptr = nullptr;
         SDL_DestroyRenderer(renderer);
@@ -63,17 +62,17 @@ class game {
         SDL_QueryTexture(texture,nullptr,nullptr,&w,&h);
         w = w/23;
         h = h/5;
-        global::drawTetrisLetter(x,0,3*w,5*h,TETRIS_LETTER_T,renderer);
+        global::drawTetrisLetter(x,0,TETRIS_LETTER_T,window);
         x+=4*w;
-        global::drawTetrisLetter(x,0,3*w,5*h,TETRIS_LETTER_E,renderer);
+        global::drawTetrisLetter(x,0,TETRIS_LETTER_E,window);
         x+=4*w;
-        global::drawTetrisLetter(x,0,3*w,5*h,TETRIS_LETTER_T,renderer);
+        global::drawTetrisLetter(x,0,TETRIS_LETTER_T,window);
         x+=4*w;
-        global::drawTetrisLetter(x,0,3*w,5*h,TETRIS_LETTER_R,renderer);
+        global::drawTetrisLetter(x,0,TETRIS_LETTER_R,window);
         x+=4*w;
-        global::drawTetrisLetter(x,0,3*w,5*h,TETRIS_LETTER_I,renderer);
+        global::drawTetrisLetter(x,0,TETRIS_LETTER_I,window);
         x+=4*w;
-        global::drawTetrisLetter(x,0,3*w,5*h,TETRIS_LETTER_S,renderer);
+        global::drawTetrisLetter(x,0,TETRIS_LETTER_S,window);
         SDL_SetRenderTarget(renderer,nullptr);
     }
 
